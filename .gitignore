@@ -3,6 +3,8 @@ node_modules
 .rdf-test-suite-ldf-cache
 .idea
 .vscode
+package-lock.json
+yarn.lock
 lerna-debug.log
 yarn-error.log
 .eslintcache
