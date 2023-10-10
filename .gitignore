@@ -1,4 +1,5 @@
 generate-comunica
+yarn.lock
 node_modules
 .rdf-test-suite-cache
 .rdf-test-suite-ldf-cache
