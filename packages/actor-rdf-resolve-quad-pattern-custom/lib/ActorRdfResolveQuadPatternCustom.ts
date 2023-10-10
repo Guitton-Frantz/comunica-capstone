@@ -17,12 +17,13 @@ export class ActorRdfResolveQuadPatternCustom extends ActorRdfResolveQuadPattern
     //the fetching of quad patterns
 
     //I don't yet understand what kind of errors are supposed to be caught here, so test() returns true for now :)
+    console.log("Custom test() Notification")
     return true; // TODO implement
   }
 
   public async run(action: IActionRdfResolveQuadPattern): Promise<IActorRdfResolveQuadPatternOutput> {
     
-    console.log("YOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+    console.log("action.pattern // Custom run()")
     console.log(action.pattern)
 
     const httpQueryHeader = {
@@ -32,7 +33,7 @@ export class ActorRdfResolveQuadPatternCustom extends ActorRdfResolveQuadPattern
 
     const response = await fetch('http://localhost:3030/#/dataset/dummy/query')
 
-    console.log("response")
+    console.log("response // Custom run()")
     console.log(response)
 
     const data = new EmptyIterator<RDF.Quad>();
