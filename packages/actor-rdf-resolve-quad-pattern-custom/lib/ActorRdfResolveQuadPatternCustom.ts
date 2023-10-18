@@ -1,7 +1,12 @@
-import { ActorRdfResolveQuadPattern, IActionRdfResolveQuadPattern, IActorRdfResolveQuadPatternOutput, IActorRdfResolveQuadPatternArgs } from '@comunica/bus-rdf-resolve-quad-pattern';
-import { IActorArgs, IActorTest } from '@comunica/core';
-import { EmptyIterator } from 'asynciterator';
-import { Console } from 'console';
+import {
+  ActorRdfResolveQuadPattern,
+  IActionRdfResolveQuadPattern,
+  IActorRdfResolveQuadPatternArgs,
+  IActorRdfResolveQuadPatternOutput
+} from '@comunica/bus-rdf-resolve-quad-pattern';
+import { IActorTest } from '@comunica/core';
+import * as DataFactory from 'rdf-data-factory';
+import { EmptyIterator, SingletonIterator } from 'asynciterator';
 import * as RDF from 'rdf-js';
 
 /**
@@ -22,22 +27,36 @@ export class ActorRdfResolveQuadPatternCustom extends ActorRdfResolveQuadPattern
   }
 
   public async run(action: IActionRdfResolveQuadPattern): Promise<IActorRdfResolveQuadPatternOutput> {
-    
-    console.log("action.pattern // Custom run()")
-    console.log(action.pattern)
+  
 
-    const httpQueryHeader = {
-      method: "GET",
-      query: "SELECT * FROM {" + action.pattern.subject + " " + action.pattern.predicate + " " + action.pattern.object + "}"
+    var q = "SELECT * WHERE { ?s ?p ?o }"
+    var url = "http://localhost:3030/dummy/sparql"
+    let fetchData = {
+        "headers": {
+            "Accept": "application/sparql-results+json,*/*;q=0.9",
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        "body": "query=" + q,
+        "method": "POST"
     }
 
-    const response = await fetch('http://localhost:3030/#/dataset/dummy/query')
-
-    console.log("response // Custom run()")
-    console.log(response)
-
-    const data = new EmptyIterator<RDF.Quad>();
-    data.setProperty('metadata', { totalItems: Infinity });
+    const response = fetch(url, fetchData)
+        .then((res)=>{
+            var usable = res.json()
+            return usable
+        })
+        .then((usable)=>{
+            console.log(usable["results"]["bindings"][0])
+            
+            console.log("data formed")
+            return usable["results"]["bindings"][0]
+        })
+    
+    const res = await response
+    console.log(res)
+    const data = new EmptyIterator<RDF.Quad>()
+    console.log("empty because that's it")
+    data.setProperty('metadata', { totalItems: 1, cardinality: 1 });
     return { data }; // TODO implement
   }
 }
