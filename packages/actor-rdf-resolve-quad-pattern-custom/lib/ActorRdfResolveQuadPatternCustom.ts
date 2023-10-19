@@ -5,9 +5,9 @@ import {
   IActorRdfResolveQuadPatternOutput
 } from '@comunica/bus-rdf-resolve-quad-pattern';
 import { IActorTest } from '@comunica/core';
-import * as DataFactory from 'rdf-data-factory';
-import { EmptyIterator, SingletonIterator } from 'asynciterator';
-import * as RDF from 'rdf-js';
+import { ArrayIterator, EmptyIterator, SingletonIterator } from 'asynciterator';
+import { DataFactory, Quad } from 'rdf-data-factory';
+import * as RDF from '@rdfjs/types';
 
 /**
  * A comunica Custom RDF Resolve Quad Pattern Actor.
@@ -18,18 +18,45 @@ export class ActorRdfResolveQuadPatternCustom extends ActorRdfResolveQuadPattern
   }
 
   public async test(action: IActionRdfResolveQuadPattern): Promise<IActorTest> {
-    //This function is meant to be called by the bus, as a way to ensure that this actor ("Custom") is able to process
-    //the fetching of quad patterns
-
-    //I don't yet understand what kind of errors are supposed to be caught here, so test() returns true for now :)
-    console.log("Custom test() Notification")
     return true; // TODO implement
   }
 
   public async run(action: IActionRdfResolveQuadPattern): Promise<IActorRdfResolveQuadPatternOutput> {
-  
+    var q = "SELECT * WHERE { "
 
-    var q = "SELECT * WHERE { ?s ?p ?o }"
+    if(action.pattern.subject.termType == 'Variable'){
+      q += '?'
+      q += action.pattern.subject.value
+    } else {
+      q += '<'
+      q += action.pattern.subject.value
+      q += '>'
+    }
+    q += ' '
+
+    if(action.pattern.predicate.termType == 'Variable'){
+      q += '?'
+      q += action.pattern.predicate.value
+    }else {
+      q += '<'
+      q += action.pattern.predicate.value
+      q += '>'
+    }
+    q += ' '
+
+    if(action.pattern.object.termType == 'Variable'){
+      q += '?'
+      q += action.pattern.object.value
+    }else {
+      q += '<'
+      q += action.pattern.object.value
+      q += '>'
+    }
+    q += ' '
+
+    q += '}'
+
+    //console.log("query", q)
     var url = "http://localhost:3030/dummy/sparql"
     let fetchData = {
         "headers": {
@@ -42,21 +69,72 @@ export class ActorRdfResolveQuadPatternCustom extends ActorRdfResolveQuadPattern
 
     const response = fetch(url, fetchData)
         .then((res)=>{
-            var usable = res.json()
-            return usable
+            var json = res.json()
+            return json
         })
-        .then((usable)=>{
-            console.log(usable["results"]["bindings"][0])
-            
-            console.log("data formed")
-            return usable["results"]["bindings"][0]
+        .then((json)=>{
+            //console.log("json", json)
+            return json
         })
     
     const res = await response
-    console.log(res)
-    const data = new EmptyIterator<RDF.Quad>()
-    console.log("empty because that's it")
-    data.setProperty('metadata', { totalItems: 1, cardinality: 1 });
+    console.log("first binding", res["results"]["bindings"][0])
+    
+    var quads = []
+    quads = this.bindingsToQuads(res, action);
+    var data = new ArrayIterator<RDF.Quad>(quads)
+    
+    data.setProperty('metadata', { cardinality: res["results"]["bindings"].length });
     return { data }; // TODO implement
+  }
+
+  private bindingsToQuads(res: any, action: IActionRdfResolveQuadPattern) {
+    var quads = []
+    const df = new DataFactory();
+    for (var i = 0; i < res["results"]["bindings"].length; i++) {
+      var quad = this.bindingToQuad(action, res, i, df);
+      //console.log(quad.subject, quad.predicate, quad.object)
+      quads.push(quad)
+    }
+
+    return quads
+  }
+
+  private bindingToQuad(action: IActionRdfResolveQuadPattern, res: any, i: number, df: DataFactory) {
+    var variable_count = 0;
+    var key = "";
+
+    var subject;
+    if (action.pattern.subject.termType == 'Variable') {
+      key = Object.keys(res["results"]["bindings"][i])[variable_count];
+      variable_count++;
+      subject = df.namedNode(res["results"]["bindings"][i][key].value);
+    } else {
+      subject = df.variable(action.pattern.subject.value);
+    }
+
+    var predicate;
+    if (action.pattern.predicate.termType == 'Variable') {
+      
+      key = Object.keys(res["results"]["bindings"][i])[variable_count];
+      variable_count++;
+      predicate = df.namedNode(res["results"]["bindings"][i][key].value);
+    } else {
+      predicate = df.variable(action.pattern.predicate.value);
+    }
+
+    var object;
+    if (action.pattern.object.termType == 'Variable') {
+      key = Object.keys(res["results"]["bindings"][i])[variable_count];
+      variable_count++;
+      object = df.namedNode(res["results"]["bindings"][i][key].value);
+    } else {
+      object = df.variable(action.pattern.object.value);
+    }
+    return df.quad(
+      subject,
+      predicate,
+      object
+    );
   }
 }
