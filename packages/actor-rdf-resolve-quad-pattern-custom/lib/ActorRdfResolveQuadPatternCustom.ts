@@ -2,17 +2,21 @@ import {
   ActorRdfResolveQuadPattern,
   IActionRdfResolveQuadPattern,
   IActorRdfResolveQuadPatternArgs,
-  IActorRdfResolveQuadPatternOutput
+  IActorRdfResolveQuadPatternOutput,
+  MediatorRdfResolveQuadPattern
 } from '@comunica/bus-rdf-resolve-quad-pattern';
 import { IActorTest } from '@comunica/core';
 import { ArrayIterator, EmptyIterator, SingletonIterator } from 'asynciterator';
 import { DataFactory, Quad } from 'rdf-data-factory';
-import * as RDF from '@rdfjs/types';
+import type * as RDF from '@rdfjs/types';
+import { MediatorRdfParseHandle } from '@comunica/bus-rdf-parse';
 
 /**
  * A comunica Custom RDF Resolve Quad Pattern Actor.
  */
 export class ActorRdfResolveQuadPatternCustom extends ActorRdfResolveQuadPattern {
+  public readonly mediatorRdfParse: MediatorRdfParseHandle;
+  public readonly mediatorRdfResolveQuadPattern: MediatorRdfResolveQuadPattern;
   public constructor(args: IActorRdfResolveQuadPatternArgs) {
     super(args);
   }
@@ -80,15 +84,15 @@ export class ActorRdfResolveQuadPatternCustom extends ActorRdfResolveQuadPattern
     const res = await response
     console.log("first binding", res["results"]["bindings"][0])
     
-    var quads = []
-    quads = this.bindingsToQuads(res, action);
-    var data = new ArrayIterator<RDF.Quad>(quads)
+    var quads = [];
+    quads = await this.bindingsToQuads(res, action);
+    var data = new ArrayIterator<RDF.Quad>(quads);
     
     data.setProperty('metadata', { cardinality: res["results"]["bindings"].length });
     return { data }; // TODO implement
   }
 
-  private bindingsToQuads(res: any, action: IActionRdfResolveQuadPattern) {
+  private async bindingsToQuads(res: any, action: IActionRdfResolveQuadPattern) {
     var quads = []
     const df = new DataFactory();
     for (var i = 0; i < res["results"]["bindings"].length; i++) {
