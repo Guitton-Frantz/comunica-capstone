@@ -212,9 +212,8 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
 
     var [resultIterator, newNextLink] = await this.getResultIteratoroAndNextLink(endpoint, query, quads);
     var temp;
-    
 
-    if(newNextLink != ""){
+    while(newNextLink != ""){
       [temp, newNextLink] = await this.getResultIteratoroAndNextLink(endpoint, query, quads, newNextLink);
       resultIterator = new LazyCardinalityIterator(resultIterator.append(temp));
     }
@@ -250,13 +249,18 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
     // Usage without await
     const [inputStream, newNextLink]: [NodeJS.EventEmitter, string] = await this.endpointFetcher.sageFetch(endpoint, query, quads, nextLink);
 
-    const stream = wrap<any>(inputStream, { autoStart: false }).map(rawData => quads ?
-      rawData :
-      BF.bindings(Object.entries(rawData)
-        .map(([key, value]: [string, RDF.Term]) => [DF.variable(key.slice(1)), value])));
+    const stream = wrap<any>(inputStream, { autoStart: false }).map(rawData => {
+      if(quads){
+        return rawData;
+      } else {
+        return BF.bindings(Object.entries(rawData).map(([key, value]: [string, RDF.Term]) => {
+          console.log(DF.variable(key).value, value.value);
+          return [DF.variable(key), value]
+        }))
+      }
+    });
 
     const resultStream = new LazyCardinalityIterator(stream);
-
     return [resultStream, newNextLink];
   }
 }

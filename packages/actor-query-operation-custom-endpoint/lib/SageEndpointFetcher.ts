@@ -76,7 +76,7 @@ export class SageEndpointFetcher {
                 body.set(key, value);
             });
 
-            console.log(body);
+            //console.log(body);
 
             headers.append('Content-Length', body.toString().length.toString());
         }
@@ -84,10 +84,10 @@ export class SageEndpointFetcher {
             url += `&${this.additionalUrlParams.toString()}`;
         }
 
-        return await this.handleFetchCall(url, { headers, method: this.method, body }, {}, nextLink);
+        return await this.handleFetchCall(url, { headers, method: this.method, body });
     }
 
-    async handleFetchCall(url: string | Request, init: RequestInit | undefined, options = {}, nextLink: string) {
+    async handleFetchCall(url: string | Request, init: RequestInit | undefined) {
         const httpResponse = await (this.fetchCb || fetch)(url, init);
         let responseStream;
 
@@ -95,8 +95,8 @@ export class SageEndpointFetcher {
         //if(!options.ignoreBody){
         var rawResponse = httpResponse.clone();
         var json = await rawResponse.json();
+        //console.log(json["results"]["bindings"])
         var newNextLink = json["SageModule"];
-        console.log("json: ", json);
         if(newNextLink == undefined) newNextLink = "";
 
         // Wrap WhatWG readable stream into a Node.js readable stream
