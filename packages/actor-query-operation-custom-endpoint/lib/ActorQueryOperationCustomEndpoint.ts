@@ -16,6 +16,7 @@ import type * as RDF from '@rdfjs/types';
 import { BindingsFactory } from '@comunica/bindings-factory';
 import { LazyCardinalityIterator } from './LazyCardinalityIterator';
 import { ActorQueryOperationSparqlEndpoint } from '../../actor-query-operation-sparql-endpoint/lib';
+import { SageEndpointFetcher } from './SageEndpointFetcher';
 const BF = new BindingsFactory();
 const DF = new DataFactory();
 
@@ -24,18 +25,19 @@ const DF = new DataFactory();
  */
 export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
 
-  endpointFetcher: SparqlEndpointFetcher;
+  endpointFetcher: SageEndpointFetcher;
   public readonly mediatorHttp: MediatorHttp;
   lastContext: IActionContext;
 
   public constructor(args: IActorQueryOperationCustomEndpointArgs) {
     super(args);
-    this.endpointFetcher = new SparqlEndpointFetcher({
-      method: 'GET',
-      fetch: (input: Request | string, init?: RequestInit) => this.mediatorHttp.mediate(
-        { input, init, context: this.lastContext },
-      ),
-      prefixVariableQuestionMark: true,
+    this.endpointFetcher = new SageEndpointFetcher({
+      method: 'POST',
+      fetch: (input: Request | string, init?: RequestInit) => {
+        var result = this.mediatorHttp.mediate(
+          { input, init, context: this.lastContext },
+        )
+        return result},
     });
   }
 
@@ -200,29 +202,29 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
     return cpe;
   }
 
-  public executeQuery(
+  public async executeQuery(
     endpoint: string, 
     query: string, 
     quads: boolean, 
     variables: RDF.Variable[] | undefined, 
     canContainUndefs: boolean
-    ): IQueryOperationResult{
+    ): Promise<IQueryOperationResult>{
 
-    const inputStream: Promise<NodeJS.EventEmitter> = quads ?
-    this.endpointFetcher.fetchTriples(endpoint, query) :
-    this.endpointFetcher.fetchBindings(endpoint, query);
+    var [resultIterator, newNextLink] = await this.getResultIteratoroAndNextLink(endpoint, query, quads);
+    var temp;
+    
 
-    const stream = wrap<any>(inputStream, { autoStart: false }).map(rawData => quads ?
-      rawData :
-      BF.bindings(Object.entries(rawData)
-        .map(([ key, value ]: [string, RDF.Term]) => [ DF.variable(key.slice(1)), value ])));
+    if(newNextLink != ""){
+      [temp, newNextLink] = await this.getResultIteratoroAndNextLink(endpoint, query, quads, newNextLink);
+      resultIterator = new LazyCardinalityIterator(resultIterator.append(temp));
+    }
 
-    const resultStream = new LazyCardinalityIterator(stream);
+    
 
     const metadata: () => Promise<IMetadata<any>> = ActorQueryOperationSparqlEndpoint.cachifyMetadata(
       async() => ({
         state: new MetadataValidationState(),
-        cardinality: { type: 'exact', value: await resultStream.getCardinality() },
+        cardinality: { type: 'exact', value: await resultIterator.getCardinality() },
         canContainUndefs,
         variables,
       }),
@@ -231,42 +233,32 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
     if (quads) {
       return <IQueryOperationResultQuads> {
         type: 'quads',
-        quadStream: resultStream,
+        quadStream: resultIterator,
         metadata,
       };
     }
     return <IQueryOperationResultBindings> <unknown> {
       type: 'bindings',
-      bindingsStream: <AsyncIterator<any>> <unknown>resultStream,
+      bindingsStream: <AsyncIterator<any>> <unknown>resultIterator,
       metadata,
     };
     
   }
 
-  // public async testOperation(pattern: Algebra.Join, context: IActionContext): Promise<IActorTest> {
-  //   console.log("test operation custom: ", context)
-  //   return true; // TODO implement
-  // }
 
-  // public async runOperation(pattern: Algebra.Join, context: IActionContext):
-  // Promise<IQueryOperationResult> {
-  //   console.log("run operation custom: ", context)
+  private async getResultIteratoroAndNextLink(endpoint: string, query: string, quads: boolean, nextLink:string = ""): Promise<[LazyCardinalityIterator<any>, string]>{
+    // Usage without await
+    const [inputStream, newNextLink]: [NodeJS.EventEmitter, string] = await this.endpointFetcher.sageFetch(endpoint, query, quads, nextLink);
 
-  //   // Call other query operations like this:
-  //   // const output: IQueryOperationResult = await this.mediatorQueryOperation.mediate({ operation, context });
-  //   var bindingsStream = new EmptyIterator<Bindings>;
+    const stream = wrap<any>(inputStream, { autoStart: false }).map(rawData => quads ?
+      rawData :
+      BF.bindings(Object.entries(rawData)
+        .map(([key, value]: [string, RDF.Term]) => [DF.variable(key.slice(1)), value])));
 
-  //   const temp = {
-  //     state: new MetadataValidationState(),
-  //     cardinality: { type: 'exact', value: await 1 },
-  //     canContainUndefs: true,
-  //     variables: []
-  //   }
+    const resultStream = new LazyCardinalityIterator(stream);
 
-  //   const metadata = () => new Promise<MetadataBindings>(() => temp)
-
-  //   return { type: 'bindings', bindingsStream, metadata }; // TODO: implement
-  // }
+    return [resultStream, newNextLink];
+  }
 }
 
 

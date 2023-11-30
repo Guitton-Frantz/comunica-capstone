@@ -19,7 +19,6 @@ export class ActorRdfResolveHypermediaLinksQueueFifo extends ActorRdfResolveHype
   }
 
   public async run(action: IActionRdfResolveHypermediaLinksQueue): Promise<IActorRdfResolveHypermediaLinksQueueOutput> {
-    console.log("run queue fifo")
     return { linkQueue: new LinkQueueFifo() };
   }
 }
