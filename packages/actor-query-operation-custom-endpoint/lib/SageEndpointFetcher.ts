@@ -76,8 +76,6 @@ export class SageEndpointFetcher {
                 body.set(key, value);
             });
 
-            //console.log(body);
-
             headers.append('Content-Length', body.toString().length.toString());
         }
         else if (this.additionalUrlParams.toString() !== '') {
@@ -92,10 +90,8 @@ export class SageEndpointFetcher {
         let responseStream;
 
         // Handle response body
-        //if(!options.ignoreBody){
         var rawResponse = httpResponse.clone();
         var json = await rawResponse.json();
-        //console.log(json["results"]["bindings"])
         var newNextLink = json["SageModule"];
         if(newNextLink == undefined) newNextLink = "";
 
@@ -103,8 +99,6 @@ export class SageEndpointFetcher {
         // If the body already is a Node.js stream (in the case of node-fetch), don't do explicit conversion.
         responseStream = isStream(httpResponse.body)
             ? httpResponse.body : new readable_web_to_node_stream_1.ReadableWebToNodeStream(httpResponse.body);
-
-        //}
 
         // Determine the content type and emit it to the stream
         let contentType = httpResponse.headers.get('Content-Type') || '';

@@ -43,8 +43,6 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
 
   public async test(action: IActionQueryOperation): Promise<IActorTest> {
     const available_operations = ["pattern"]
-    //console.log("custom endpoint test action: ", action.operation.type, available_operations.includes(action.operation.type));
-    //throw new Error('Method not implemented.');
     if(!available_operations.includes(action.operation.type)){
       throw new Error(`${this.name} is not able to process ${action.operation.type} operations`);
     }
@@ -69,22 +67,6 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
     const query: string = this.subQueryFromAction(action)
     
     return this.executeQuery(endpoint, query!, false, variables, canContainUndefs);
-
-    // var bindingsStream = new EmptyIterator<Bindings>;
-
-    // const temp = {
-    //   state: new MetadataValidationState(),
-    //   cardinality: { type: 'exact', value: await 1 },
-    //   canContainUndefs: true,
-    //   variables: []
-    // }
-
-    // const metadata = () => new Promise<MetadataBindings>(() => temp)
-
-    // this.subQueryFromAction(action)
-
-    // return { type: 'bindings', bindingsStream, metadata }; // TODO: implement
-
   }
 
   public canOperationContainUndefs(operation: Algebra.Operation): boolean {
@@ -161,8 +143,6 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
 
   private _inputToQueryPatternString(input: any) {
     var q = "";
-
-    // console.log("input.object.termType: ", input.object.termType)
 
     q += this._cleanPatternElement(input.subject)
     q += ' '
@@ -254,7 +234,6 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
         return rawData;
       } else {
         return BF.bindings(Object.entries(rawData).map(([key, value]: [string, RDF.Term]) => {
-          console.log(DF.variable(key).value, value.value);
           return [DF.variable(key), value]
         }))
       }
