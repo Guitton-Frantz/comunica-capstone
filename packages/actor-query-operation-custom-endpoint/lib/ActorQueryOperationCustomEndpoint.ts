@@ -41,11 +41,20 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
     });
   }
 
-  public async test(action: IActionQueryOperation): Promise<IActorTest> {
-    const available_operations = ["pattern"]
-    if(!available_operations.includes(action.operation.type)){
+  private isOperationValid_rec(valid_operations: String[], action:any){
+    if(!valid_operations.includes(action.operation.type)){
       throw new Error(`${this.name} is not able to process ${action.operation.type} operations`);
     }
+    if(action.operation.input !== undefined){
+      for(const input in action.operation.input){
+        this.isOperationValid_rec(valid_operations, input);
+      }
+    }
+  }
+
+  public async test(action: IActionQueryOperation): Promise<IActorTest> {
+    const available_operations = ["pattern"]
+    this.isOperationValid_rec(available_operations, action);
     return true;
     
   }
