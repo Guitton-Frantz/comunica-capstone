@@ -1,16 +1,12 @@
-import { ActorQueryOperation, ActorQueryOperationTypedMediated,
-  IActionQueryOperation,
-  IActorQueryOperationTypedMediatedArgs } from '@comunica/bus-query-operation';
-import { ActionContext, IActorArgs, IActorTest } from '@comunica/core';
+import { ActorQueryOperation, 
+  IActionQueryOperation } from '@comunica/bus-query-operation';
+import { IActorArgs, IActorTest } from '@comunica/core';
 import { MetadataValidationState } from '@comunica/metadata';
-import { MetadataBindings, type Bindings, type IActionContext, type IMetadata, type IQueryOperationResult, IQueryOperationResultBindings, IQueryOperationResultQuads } from '@comunica/types';
-import { EmptyIterator, wrap } from 'asynciterator';
-import { DataFactory, Quad, Variable } from 'rdf-data-factory';
+import { type IActionContext, type IMetadata, type IQueryOperationResult, IQueryOperationResultBindings, IQueryOperationResultQuads } from '@comunica/types';
+import { wrap } from 'asynciterator';
+import { DataFactory } from 'rdf-data-factory';
 import { Algebra, Util } from 'sparqlalgebrajs';
-import { getContextSourceFirst, getDataSourceType, getDataSourceValue } from '@comunica/bus-rdf-resolve-quad-pattern';
-import { getContextDestinationFirst, getDataDestinationType, getDataDestinationValue } from '@comunica/bus-rdf-update-quads';
-import { string } from '@comunica/expression-evaluator/lib/functions/Helpers';
-import { SparqlEndpointFetcher } from 'fetch-sparql-endpoint';
+import { getContextSourceFirst, getDataSourceValue } from '@comunica/bus-rdf-resolve-quad-pattern';
 import { MediatorHttp } from '@comunica/bus-http';
 import type * as RDF from '@rdfjs/types';
 import { BindingsFactory } from '@comunica/bindings-factory';
@@ -102,7 +98,6 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
 
 
   public subQueryFromAction(action: IActionQueryOperation){
-    //console.log(action.operation)
 
     var subQuery: string = "";
 
@@ -113,8 +108,10 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
         break;
       }
       case "pattern": {
-        //TODO: properly implement a _subQueryPattern function
         subQuery += this._subQueryPattern(action);
+        break;
+      }
+      case "union": {
         break;
       }
     }
@@ -235,7 +232,6 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
 
 
   private async getResultIteratoroAndNextLink(endpoint: string, query: string, quads: boolean, nextLink:string = ""): Promise<[LazyCardinalityIterator<any>, string]>{
-    // Usage without await
     const [inputStream, newNextLink]: [NodeJS.EventEmitter, string] = await this.endpointFetcher.sageFetch(endpoint, query, quads, nextLink);
 
     const stream = wrap<any>(inputStream, { autoStart: false }).map(rawData => {
