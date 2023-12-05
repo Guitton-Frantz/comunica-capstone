@@ -37,22 +37,37 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
     });
   }
 
-  private isOperationValid_rec(valid_operations: String[], action:any){
-    if(!valid_operations.includes(action.operation.type)){
-      throw new Error(`${this.name} is not able to process ${action.operation.type} operations`);
+  private isOperationValid_rec(valid_operations: String[], operation:any): boolean{
+
+    if(operation.type == "pattern"){
+      return true;
     }
-    if(action.operation.input !== undefined){
-      for(const input in action.operation.input){
-        this.isOperationValid_rec(valid_operations, input);
+
+    if(!valid_operations.includes(operation.type)){
+      return false;
+    }
+
+    if(Array.isArray(operation.input)){
+      for(var inputIndex in operation.input){
+        if(!this.isOperationValid_rec(valid_operations, operation.input[inputIndex])) return false;
       }
+    } else {
+      if(!this.isOperationValid_rec(valid_operations, operation.input)) return false;
     }
+
+    return true;
+  }
+
+  private isOperationValid(valid_operations: String[], action:any){
+    return this.isOperationValid_rec(valid_operations, action.operation)
   }
 
   public async test(action: IActionQueryOperation): Promise<IActorTest> {
-    const available_operations = ["pattern"]
-    this.isOperationValid_rec(available_operations, action);
+    const available_operations = ["pattern", "join"]
+    if(!this.isOperationValid(available_operations, action)){
+      throw new Error(`${this.name} is not able to process ${action.operation.type} operations`);
+    };
     return true;
-    
   }
 
   public async run(action: IActionQueryOperation): Promise<IQueryOperationResult> {

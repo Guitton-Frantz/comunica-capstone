@@ -8,7 +8,6 @@
     "ccqs:config/query-operation/actors/query/project.json",
     "ccqs:config/query-operation/actors/query/slice.json",
     "ccqs:config/query-operation/actors/query/distinct.json",
-    "ccqs:config/query-operation/actors/query/join.json",
 
     "ccqs:config/query-operation/actors/query/path-alt.json",
     "ccqs:config/query-operation/actors/query/path-inv.json",
