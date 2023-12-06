@@ -22,17 +22,17 @@ export class ActorRdfResolveHypermediaCustom extends ActorRdfResolveHypermedia {
   objectUri: any;
   graphUri: any;
   public async testMetadata(action: IActionRdfResolveHypermedia): Promise<IActorRdfResolveHypermediaTest> {
-    console.log("custom testMetadata()");
+    //console.log("custom testMetadata()");
     return {filterFactor : 1};
   }
   public constructor(args: IActorRdfResolveHypermediaArgs) {
-    console.log("custom constructor");
+    //console.log("custom constructor");
     super(args, 'custom');
   }
 
   public async run(action: IActionRdfResolveHypermedia): Promise<IActorRdfResolveHypermediaOutput> {
-    this.logInfo(action.context, `Identified as custom source: ${action.url}`);
-    console.log(`Identified as custom source: ${action.url}`)
+    //this.logInfo(action.context, `Identified as custom source: ${action.url}`);
+    //console.log(`Identified as custom source: ${action.url}`)
     const source = this.createSource(action.url, action.metadata, action.context, action.quads);
     return { source, dataset: source.searchForm.dataset };
   }

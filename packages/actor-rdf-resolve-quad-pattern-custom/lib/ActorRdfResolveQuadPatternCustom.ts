@@ -82,7 +82,7 @@ export class ActorRdfResolveQuadPatternCustom extends ActorRdfResolveQuadPattern
         })
     
     const res = await response
-    console.log("first binding", res["results"]["bindings"][0])
+    //console.log("first binding", res["results"]["bindings"][0])
     
     var quads = [];
     quads = await this.bindingsToQuads(res, action);

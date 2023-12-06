@@ -41,7 +41,6 @@ export class ActorRdfResolveHypermediaQpf extends ActorRdfResolveHypermedia
    */
   public async run(action: IActionRdfResolveHypermedia): Promise<IActorRdfResolveHypermediaOutput> {
     this.logInfo(action.context, `Identified as qpf source: ${action.url}`);
-    console.log(`Identified as qpf source: ${action.url}`)
     const source = this.createSource(action.url, action.metadata, action.context, action.quads);
     return { source, dataset: source.searchForm.dataset };
   }
