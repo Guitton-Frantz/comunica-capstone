@@ -13,6 +13,7 @@ import { BindingsFactory } from '@comunica/bindings-factory';
 import { LazyCardinalityIterator } from './LazyCardinalityIterator';
 import { ActorQueryOperationSparqlEndpoint } from '../../actor-query-operation-sparql-endpoint/lib';
 import { SageEndpointFetcher } from './SageEndpointFetcher';
+import { str } from '@comunica/expression-evaluator/test/util/Aliases';
 const BF = new BindingsFactory();
 const DF = new DataFactory();
 
@@ -63,8 +64,9 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
   }
 
   public async test(action: IActionQueryOperation): Promise<IActorTest> {
-    const available_operations = ["pattern", "join"]
+    const available_operations = ["pattern", "join", "union", "filter", "project"]
     if(!this.isOperationValid(available_operations, action)){
+      console.log(action)
       throw new Error(`${this.name} is not able to process ${action.operation.type} operations`);
     };
     return true;
@@ -84,7 +86,9 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
     const variables = Util.inScopeVariables(action.operation);
     const canContainUndefs = this.canOperationContainUndefs(action.operation);
 
-    const query: string = this.subQueryFromAction(action)
+    const query: string = this.subQueryFromAction(action.operation)
+
+    console.log("query string: ", query);
     
     return this.executeQuery(endpoint, query!, false, variables, canContainUndefs);
   }
@@ -112,52 +116,105 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
   }
 
 
-  public subQueryFromAction(action: IActionQueryOperation){
+  public subQueryFromAction(action: any){
 
-    var subQuery: string = "";
+    var subQuery: string = "SELECT * WHERE {";
 
+    subQuery += this._subQueryFromActionRec(action);
 
-    switch(action.operation.type){
-      case "join":{
-        subQuery += this._subQueryJoin(action);
-        break;
-      }
-      case "pattern": {
-        subQuery += this._subQueryPattern(action);
-        break;
-      }
-      case "union": {
-        break;
-      }
-    }
+    subQuery += "}";
 
     return subQuery
   }
 
-  private _subQueryJoin(action: IActionQueryOperation): string{
+  private _subQueryFromActionRec(action:any) {
+    switch (action.type) {
+      case "join": {
+        return this._subQueryJoin(action);
+      }
+      case "pattern": {
+        return this._subQueryPattern(action);
+      }
+      case "project": {
+        return this._subQueryProject(action);
+      }
+      case "union": {
+        return this._subQueryUnion(action);
+      }
+      case "filter": {
+        return this._subQueryFilter(action);
+      }
+    }
+  }
+
+  private _subQueryFilter(action: any): string{
+    var stringQuery: string = "";
+    
+    stringQuery += this._subQueryFromActionRec(action.input)
+
+    stringQuery += "FILTER(";
+
+    action.expression.args[0].term.termType = "variable" ? stringQuery += "?" : stringQuery += "";
+    stringQuery += action.expression.args[0].term.value;
+
+    stringQuery += action.expression.operator;
+
+    action.expression.args[1].term.termType = "variable" ? stringQuery += "?" : stringQuery += "";
+    stringQuery += action.expression.args[1].term.value;
+
+    stringQuery += ")";
+
+    return stringQuery;
+  }
+
+  private _subQueryUnion(action: any): string{
     var stringQuery: string = "";
 
-    stringQuery += "SELECT * WHERE { ";
+    stringQuery += "{";
 
-    action.operation.input.forEach((input: any) => {
-      
+    stringQuery += this._subQueryFromActionRec(action.input[0])
 
-      stringQuery += this._inputToQueryPatternString(input)
-
-      
-    });
     stringQuery += "}"
+
+    stringQuery += "UNION"
+
+    stringQuery += "{"
+
+    stringQuery += this._subQueryFromActionRec(action.input[1])
+
+    stringQuery += "}"
+
+    return stringQuery;
+  }
+
+  private _subQueryProject(action: any): string{
+    var stringQuery: string = "";
+
+    stringQuery += "{ ";
+
+    stringQuery += this.subQueryFromAction(action.input)
+
+    stringQuery += "}"
+
+    return stringQuery;
+  }
+
+  private _subQueryJoin(action: any): string{
+    var stringQuery: string = "";
+
+    action.input.forEach((inp: any) => {
+
+      stringQuery += this._subQueryFromActionRec(inp)
+
+    });
+    
     return stringQuery;
   }
 
   private _subQueryPattern(action: IActionQueryOperation){
     var stringQuery: string = "";
 
-    stringQuery += "SELECT * WHERE { ";
-
-    stringQuery += this._inputToQueryPatternString(action.operation)
-
-    stringQuery += "}"
+    stringQuery += this._inputToQueryPatternString(action)
 
     return stringQuery;
   }
