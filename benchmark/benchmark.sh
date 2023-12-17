@@ -37,7 +37,6 @@ do
         time_diff=$((time_diff/1000000))
         echo "Time to run query $filename : $time_diff ms"
         echo "$filename;$time_diff;$preemption_iteration" >> $2
-        echo "$time_diff" >> ./results/resrequest.txt
         echo "------------------------------------------------------------"
     done
 done 
