@@ -216,7 +216,7 @@ export class ActorQueryOperationQuadpattern extends ActorQueryOperationTyped<Alg
         DF.variable('__comunica:defaultGraph'),
       );
     }
-
+    
     // Resolve the quad pattern
     const result = await this.mediatorResolveQuadPattern.mediate({ pattern: patternInner, context });
 

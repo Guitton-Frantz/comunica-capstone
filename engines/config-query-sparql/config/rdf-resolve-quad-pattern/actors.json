@@ -6,13 +6,12 @@
     "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-rdf-resolve-quad-pattern-federated/^2.0.0/components/context.jsonld",
     "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-rdf-resolve-quad-pattern-rdfjs-source/^2.0.0/components/context.jsonld",
     "https://linkedsoftwaredependencies.org/bundles/npm/@comunica/actor-rdf-resolve-quad-pattern-string-source/^2.0.0/components/context.jsonld"
-
   ],
   "@graph": [
     {
       "import": [
-        "ccqs:config/rdf-resolve-quad-pattern/actors/hypermedia.json",
         "ccqs:config/rdf-resolve-quad-pattern/actors/federated.json",
+        "ccqs:config/rdf-resolve-quad-pattern/actors/hypermedia.json",
         "ccqs:config/rdf-resolve-quad-pattern/actors/rdfjs-source.json",
         "ccqs:config/rdf-resolve-quad-pattern/actors/string-source.json"
       ]

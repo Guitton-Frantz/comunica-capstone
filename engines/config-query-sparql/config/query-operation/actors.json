@@ -4,7 +4,6 @@
   ],
   "import": [
     "ccqs:config/query-operation/actors/query/ask.json",
-    "ccqs:config/query-operation/actors/query/bgp.json",
     "ccqs:config/query-operation/actors/query/construct.json",
     "ccqs:config/query-operation/actors/query/describe.json",
     "ccqs:config/query-operation/actors/query/distinct.json",
@@ -14,12 +13,13 @@
     "ccqs:config/query-operation/actors/query/minus.json",
     "ccqs:config/query-operation/actors/query/nop.json",
     "ccqs:config/query-operation/actors/query/orderby.json",
-    "ccqs:config/query-operation/actors/query/custom-endpoint.json",
     "ccqs:config/query-operation/actors/query/reduced.json",
     "ccqs:config/query-operation/actors/query/service.json",
     "ccqs:config/query-operation/actors/query/slice.json",
+    "ccqs:config/query-operation/actors/query/custom-endpoint.json",
     "ccqs:config/query-operation/actors/query/values.json",
-
+ 
+ 
     "ccqs:config/query-operation/actors/query/path-alt.json",
     "ccqs:config/query-operation/actors/query/path-inv.json",
     "ccqs:config/query-operation/actors/query/path-link.json",
@@ -28,7 +28,8 @@
     "ccqs:config/query-operation/actors/query/path-seq.json",
     "ccqs:config/query-operation/actors/query/path-zero-or-more.json",
     "ccqs:config/query-operation/actors/query/path-zero-or-one.json",
-
+ 
+ 
     "ccqs:config/query-operation/actors/update/add.json",
     "ccqs:config/query-operation/actors/update/clear.json",
     "ccqs:config/query-operation/actors/update/composite.json",
@@ -39,4 +40,5 @@
     "ccqs:config/query-operation/actors/update/load.json",
     "ccqs:config/query-operation/actors/update/move.json"
   ]
-}
+ }
+ 

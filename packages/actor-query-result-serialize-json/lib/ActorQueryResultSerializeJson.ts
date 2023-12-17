@@ -36,10 +36,14 @@ export class ActorQueryResultSerializeJson extends ActorQueryResultSerializeFixe
 
   public async runHandle(action: IActionSparqlSerialize, mediaType: string, context: IActionContext):
   Promise<IActorQueryResultSerializeOutput> {
+    
     const data = new Readable();
     data._read = () => {
       // Do nothing
     };
+
+    //this is to prevent comunica from writing the results, which can affect benchmark times. Remove if you want to print results!
+    return { data };
 
     let empty = true;
     if (action.type === 'bindings') {

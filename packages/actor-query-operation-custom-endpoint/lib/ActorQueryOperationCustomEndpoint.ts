@@ -87,8 +87,6 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
     const canContainUndefs = this.canOperationContainUndefs(action.operation);
 
     const query: string = this.subQueryFromAction(action.operation)
-
-    console.log("query string: ", query);
     
     return this.executeQuery(endpoint, query!, false, variables, canContainUndefs);
   }
@@ -270,13 +268,15 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
 
     var [resultIterator, newNextLink] = await this.getResultIteratoroAndNextLink(endpoint, query, quads);
     var temp;
+    var preemption_iterator = 0;
 
     while(newNextLink != ""){
+      preemption_iterator++
       [temp, newNextLink] = await this.getResultIteratoroAndNextLink(endpoint, query, quads, newNextLink);
       resultIterator = new LazyCardinalityIterator(resultIterator.append(temp));
     }
 
-    
+    console.log("Preemption Iterations: ", preemption_iterator)
 
     const metadata: () => Promise<IMetadata<any>> = ActorQueryOperationSparqlEndpoint.cachifyMetadata(
       async() => ({
