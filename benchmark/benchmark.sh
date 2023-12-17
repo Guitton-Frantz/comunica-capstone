@@ -30,13 +30,14 @@ do
     do
         echo "Running query: $filename"
         start_time=$(date +%s%N)
-        node engines/query-sparql/bin/query.js http://localhost:3330/watdiv10M/sparql -f $filename >> ./benchmark/resrequest.txt
+        preemption_iteration=$(node engines/query-sparql/bin/query.js http://localhost:3330/watdiv10M/sparql -f $filename)
         end_time=$(date +%s%N)
-        echo $end_time
         # Calculate the time it took to run the query
         time_diff=$((end_time - start_time))
         time_diff=$((time_diff/1000000))
-        echo "Time to run query: $time_diff ms"
-        echo "$filename;$time_diff" >> $2
+        echo "Time to run query $filename : $time_diff ms"
+        echo "$filename;$time_diff;$preemption_iteration" >> $2
+        echo "$time_diff" >> ./results/resrequest.txt
+        echo "------------------------------------------------------------"
     done
 done 

@@ -276,7 +276,7 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
       resultIterator = new LazyCardinalityIterator(resultIterator.append(temp));
     }
 
-    console.log("Preemption Iterations: ", preemption_iterator)
+    console.log(preemption_iterator)
 
     const metadata: () => Promise<IMetadata<any>> = ActorQueryOperationSparqlEndpoint.cachifyMetadata(
       async() => ({
