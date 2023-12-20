@@ -3,22 +3,31 @@ import re
 from shutil import copyfile
 
 
-def add_optional_clause(query):
-    # Extract the first triple pattern from the query
-    match = re.search(r'.* .* .*\.', query)
-    if match:
-        triple_pattern = match.group(0).strip()
+def transform_query(input_query):
+    lines = input_query.split('\n')[1:]
+    transformed_query = "SELECT * WHERE {\n"
+    subquery = "{\nSELECT * WHERE {\n"
+    lines = lines[:-2]
 
-        # Create a regular expression pattern for the triple pattern
-        triple_pattern_regex = re.escape(triple_pattern)
+    if(len(lines)==1):
+        return "SELECT * WHERE {\n" + "OPTIONAL { " + lines[0] + " } \n}"
+    
 
-        # Add the OPTIONAL clause to the triple pattern
-        modified_query = re.sub(triple_pattern_regex, f'OPTIONAL {{ {triple_pattern} }}', query, count=1)
+    optional = False; 
 
-        return modified_query
-    else:
-        # No triple pattern found
-        return query
+    for line in lines:
+        if(not optional):
+           transformed_query += '\tOPTIONAL { ' + line + ' }\n'
+           optional = True
+        else:
+            subquery += line + '\n'
+    
+    subquery += '}\n}'
+    transformed_query += subquery
+
+    transformed_query += "}"
+
+    return transformed_query
 
 def process_files(input_folder, output_folder):
     # Create the output folder if it doesn't exist
@@ -36,7 +45,7 @@ def process_files(input_folder, output_folder):
                 query = input_file.read()
 
             # Add optional pattern to the query
-            modified_query = add_optional_clause(query)
+            modified_query = transform_query(query)
 
             # Debugging: Print original and modified queries
             print(f"Original Query ({filename}):")
@@ -51,8 +60,8 @@ def process_files(input_folder, output_folder):
 
 if __name__ == "__main__":
     # Replace 'input_folder' and 'output_folder' with your actual paths
-    input_folder = 'queries/fast_queries'
-    output_folder = 'queries/fast_queries_opt'
+    input_folder = 'queries/watdiv_with_sage_plan'
+    output_folder = 'queries/watdiv_with_sage_plan_optional_subquery'
 
     process_files(input_folder, output_folder)
     print("Conversion completed.")

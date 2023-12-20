@@ -20,7 +20,7 @@ export class ActorOptimizeQueryOperationBgpToJoin extends ActorOptimizeQueryOper
       bgp(op: Algebra.Bgp, factory: Factory) {
         return {
           recurse: false,
-          result: factory.createJoin(op.patterns),
+          result: factory.createJoin(op.patterns, false),
         };
       },
     });

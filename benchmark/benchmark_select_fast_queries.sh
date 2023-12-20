@@ -41,25 +41,23 @@ do
         start_time=$(date +%s%N)
 
         # Run the query with a timeout of 10 minutes
-        timeout 10m node engines/query-sparql/bin/query.js http://localhost:3330/watdiv10M/sparql -f $filename > ./benchmark/temp_result.txt
+        timeout 30m node engines/query-sparql/bin/query.js http://localhost:3030/watdiv10M/sparql -f $filename > ./benchmark/temp_result.txt
 
         exit_status=$?
 
         end_time=$(date +%s%N)
-        echo $end_time
         
         # Calculate the time it took to run the query
         time_diff=$((end_time - start_time))
         time_diff=$((time_diff/1000000))
         echo "Time to run query: $time_diff ms"
 
-        if [ $exit_status -eq 0 ] && [ $time_diff -lt 600000 ]; then
+        if [ $exit_status -eq 0 ] && [ $time_diff -lt 1800000 ]; then
             # If the query completed successfully within 10 minutes, copy the query file to the fast_queries directory
-            cp $filename ./queries/fast_queries/
-            echo "Query copied to fast_queries directory"
+            cp $filename ./queries/fast/
         else
             # If the query took longer than 10 minutes or had an error, print a message and move on to the next query
-            echo "Query took longer than 1 minute or encountered an error. Skipping to the next query."
+            echo "Query took longer than 10 minute or encountered an error. Skipping to the next query."
             continue
         fi
 

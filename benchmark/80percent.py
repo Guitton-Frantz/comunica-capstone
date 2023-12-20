@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 # Read data from file
-with open('./benchmark/res_fuseki_endpoint_bgp.csv', 'r') as file:
+with open('./results/res_sage_endpoint_60s_bgp.csv', 'r') as file:
     data = file.readlines()
 
 # Create a dictionary to store query times for each query name
@@ -9,7 +9,7 @@ query_times_dict = defaultdict(list)
 
 # Extract query times and organize them by query name
 for line in data:
-    query_name, query_time = line.split(';')
+    query_name, query_time, _ = line.split(';')
     query_times_dict[query_name].append(int(query_time))
 
 # Calculate average time for each query name

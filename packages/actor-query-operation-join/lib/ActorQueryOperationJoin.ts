@@ -19,6 +19,7 @@ export class ActorQueryOperationJoin extends ActorQueryOperationTypedMediated<Al
   }
 
   public async testOperation(operation: Algebra.Join, context: IActionContext): Promise<IActorTest> {
+    if(operation.input.length > 1 && (operation.input[0].type != "leftjoin" && operation.input[1].type != "leftjoin")) throw new Error(`Impossible`)
     return true;
   }
 

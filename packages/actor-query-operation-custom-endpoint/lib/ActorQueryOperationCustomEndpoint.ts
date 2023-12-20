@@ -40,7 +40,7 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
 
   private isOperationValid_rec(valid_operations: String[], operation:any): boolean{
 
-    if(operation.type == "pattern"){
+    if(operation.type == "pattern" || operation == undefined){
       return true;
     }
 
@@ -64,9 +64,8 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
   }
 
   public async test(action: IActionQueryOperation): Promise<IActorTest> {
-    const available_operations = ["pattern", "join", "union", "filter", "project"]
+    const available_operations = ["pattern", "join", "project", "union", "filter"]
     if(!this.isOperationValid(available_operations, action)){
-      console.log(action)
       throw new Error(`${this.name} is not able to process ${action.operation.type} operations`);
     };
     return true;
@@ -87,7 +86,7 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
     const canContainUndefs = this.canOperationContainUndefs(action.operation);
 
     const query: string = this.subQueryFromAction(action.operation)
-    
+
     return this.executeQuery(endpoint, query!, false, variables, canContainUndefs);
   }
 
@@ -275,8 +274,6 @@ export class ActorQueryOperationCustomEndpoint extends ActorQueryOperation{
       [temp, newNextLink] = await this.getResultIteratoroAndNextLink(endpoint, query, quads, newNextLink);
       resultIterator = new LazyCardinalityIterator(resultIterator.append(temp));
     }
-
-    console.log(preemption_iterator)
 
     const metadata: () => Promise<IMetadata<any>> = ActorQueryOperationSparqlEndpoint.cachifyMetadata(
       async() => ({
